@@ -1,6 +1,6 @@
 use fs_err as fs;
 
-use image::{codecs::png::PngEncoder, GenericImageView};
+use image::{codecs::png::PngEncoder, GenericImageView, ImageEncoder};
 
 use std::borrow::Cow;
 
@@ -27,7 +27,7 @@ pub fn upload_image(global: GlobalOptions, options: UploadImageOptions) {
 
     let mut encoded_image: Vec<u8> = Vec::new();
     PngEncoder::new(&mut encoded_image)
-        .encode(&img.to_bytes(), width, height, img.color())
+        .write_image(img.as_bytes(), width, height, img.color().into())
         .unwrap();
 
     let mut client = RobloxApiClient::new(Some(auth));

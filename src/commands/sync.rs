@@ -7,7 +7,9 @@ use std::{
 };
 
 use fs_err as fs;
-use image::{codecs::png::PngEncoder, imageops, DynamicImage, GenericImageView, ImageError};
+use image::{
+    codecs::png::PngEncoder, imageops, DynamicImage, GenericImageView, ImageEncoder, ImageError,
+};
 use packos::{InputItem, SimplePacker};
 use thiserror::Error;
 use walkdir::WalkDir;
@@ -448,7 +450,7 @@ impl SyncSession {
                 let (name, sprite_image) = &images_by_id[&item.id()];
                 let (x, y) = item.position();
 
-                imageops::overlay(&mut img, sprite_image, x, y);
+                imageops::overlay(&mut img, sprite_image, x as i64, y as i64);
 
                 let slice = ImageSlice::new(item.position(), item.max());
                 slices.insert((*name).clone(), slice);
@@ -475,11 +477,11 @@ impl SyncSession {
         let (width, height) = packed_image.img.dimensions();
 
         PngEncoder::new(&mut encoded_image)
-            .encode(
-                &packed_image.img.to_bytes(),
+            .write_image(
+                packed_image.img.as_bytes(),
                 width,
                 height,
-                packed_image.img.color(),
+                packed_image.img.color().into(),
             )
             .unwrap();
 
@@ -519,7 +521,7 @@ impl SyncSession {
 
         let mut encoded_image: Vec<u8> = Vec::new();
         PngEncoder::new(&mut encoded_image)
-            .encode(&img.to_bytes(), width, height, img.color())
+            .write_image(img.as_bytes(), width, height, img.color().into())
             .unwrap();
 
         let upload_data = UploadInfo {
